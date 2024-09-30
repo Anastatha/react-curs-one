@@ -1,76 +1,66 @@
-import React from 'react';
-import styles from './App.module.css';
+import styles from './app.module.css';
+import data from './data.json';
 import { useState } from 'react';
 
 export const App = () => {
- const [value, setValue] = useState('');
- const [list, setList] = useState([]);
- const [error, setError] = useState('');
+	const [steps, setSteps] = useState(data);
+	const [activeIndex, setActiveIndex] = useState(0);
 
- const isValueValid = value.length >= 3;
+	const isFirstStep = activeIndex === 0;
+	const isLastStep = activeIndex === steps.length - 1;
 
- const onInputButtonClick = () => {
-  const promptValue = prompt('Введите значение');
-  if(promptValue.length < 3) {
-    setError('Введенное значение должно содержать минимум 3 символа');
-  } else {
-    setValue(promptValue);
-    setError('');   
-  }
- };
+	const onPreviousClick = () => {
+		if (!isFirstStep) {
+		  setActiveIndex(activeIndex - 1);
+		}
+	};
 
- const formatDate = (date) => {
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
+	const onNextClick = () => {
+		if (!isLastStep) {
+		  setActiveIndex(activeIndex + 1);
+		} else {
+		  setActiveIndex(0); 
+		}
+	};
+	
+	const onStepClick = (index) => {
+		setActiveIndex(index);
+	};
 
-  return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
- };
-
- const onAddButtonClick = () => {
-  if(isValueValid) {
-    const newItem = {
-      id: Date.now(),
-      value,
-      timestamp: formatDate(new Date()), 
-    };
-    setList(prevList => [...prevList, newItem]);
-
-    setValue('');
-    setError('');
-  }
- };
-
-  return (
-    <div className={styles.app}>
-      <h1 className={styles['page-heading']}>Ввод значения</h1>
-      <p className={styles['no-margin-text']}>
-        Текущее значение <code>value</code>: "<output className={styles['current-value']}>{value}</output>"
-      </p>
-      {error && (
-        <div className={styles.error}>{error}</div>
-      )}
-      <div className={styles['buttons-container']}>
-        <button className={styles.button} onClick={onInputButtonClick}>Ввести новое</button>
-        <button className={styles.button} disabled={!isValueValid} onClick={onAddButtonClick}>Добавить в список</button>
-      </div>
-      <div className={styles['list-container']}>
-        <h2 className={styles['list-heading']}>Список:</h2>
-        {list.length === 0 ? (
-          <p className={styles['no-margin-text']}>Нет добавленных элементов</p>
-        ) : (
-          <ul className={styles.list}>
-            {list.map(item => (
-              <li key={item.id} className={styles['list-item']}>
-                {item.value} <span className={styles.timestamp}>({item.timestamp})</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
-  );
+	return (
+		<div className={styles.container}>
+			<div className={styles.card}>
+				<h1>Инструкция по готовке пельменей</h1>
+				<div className={styles.steps}>
+					<div className={styles['steps-content']}>
+						{steps[activeIndex].content}
+					</div>
+					<ul className={styles['steps-list']}>
+						{steps.map((step, index) => (
+						<li
+							key={step.id}
+							className={`${styles['steps-item']} 
+							${index <= activeIndex ? styles.done : ''} 
+							${index === activeIndex ? styles.active : ''}`}
+						>
+						<button
+							className={styles['steps-item-button']}
+							onClick={() => onStepClick(index)}
+						>
+							{index + 1}
+						</button>
+							{step.title}
+						</li>
+						))}
+					</ul>
+					<div className={styles['buttons-container']}>
+						<button className={styles.button} onClick={onPreviousClick} disabled={isFirstStep}>Назад</button>
+						<button className={styles.button} onClick={onNextClick}>
+							{isLastStep ? 'Начать сначала' : 'Далее'}
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 };
